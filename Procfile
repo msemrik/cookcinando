@@ -1,0 +1,1 @@
+web: node --inspect applications/server/App.js

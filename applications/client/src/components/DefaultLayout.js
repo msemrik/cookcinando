@@ -1,0 +1,87 @@
+import React from 'react';
+import Pages from '../enum/pages';
+
+class DefaultLayout extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {height: "50px"}
+        this.logOutApplication = this.logOutApplication.bind(this);
+        this.resize = this.resize.bind(this);
+    }
+
+    componentDidMount() {
+        window.addEventListener('resize', this.resize);
+        this.resize();
+    }
+
+    resize(){
+
+        if(window.innerWidth < 768){
+            const headerTopNavHeight = this.headerTopNav.clientHeight;
+            const headerHeight = this.headerElement.clientHeight;
+            this.setState({
+                topNavHeight: (headerTopNavHeight + 10) + "px",
+                headerHeight: headerHeight + headerTopNavHeight + 10
+            });
+        } else {
+            const headerHeight = this.headerElement.clientHeight;
+            this.setState({
+                headerHeight: (headerHeight) + "px",
+                topNavHeight: 0/*, contentHeight: window.innerHeight - headerHeight*/
+            });
+        }
+    }
+
+    render() {
+        return (
+            <div>
+                <div className="header" ref={(headerElement) => this.headerElement = headerElement}
+                     style={{marginTop: this.state.topNavHeight}}>
+                    <div className="header-title">
+                        <h1>Cookcinando App</h1>
+                        <p>Select your favourites recipes and get your complete shopping list!</p>
+                    </div>
+                    <hr className={"headerSplitter"}/>
+                    <div className="header-topnav" ref={(headerTopNav) => this.headerTopNav = headerTopNav}>
+                        <div className="header-topnav-buttons">
+                            <div>
+                                <a href="#" className={this.setClassName(Pages.RECIPES)}
+                                   onClick={() => this.props.onChange(Pages.RECIPES)}>Go To My Recipes</a>
+                                {this.props.isSpotifyUserLogged ?
+                                    <a href="#" onClick={this.logOutApplication}>Logout</a> :
+                                    undefined
+                                }
+
+                                <a href="#" className={this.setClassName(Pages.CONFIGURATION)}
+                                   onClick={() => this.props.onChange(Pages.CONFIGURATION)}>{this.props.isSpotifyUserLogged ? "Spotify Account Info" : "Log in to Spotify"}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style={{top: this.state.headerHeight}} ref={(contentElement) => this.contentElement = contentElement} className="content">
+                    <div className="content-view-port">
+                        {this.props.children}
+                    </div>
+                </div>
+
+                <div className="footer">
+                    <p>Recommend to your friends ;)</p>
+                </div>
+            </div>
+
+        );
+    }
+
+    setClassName(page) {
+        if (page === this.props.actualPage) {
+            return "selected";
+        }
+    }
+
+    logOutApplication() {
+        window.location.replace("/logout");
+    }
+}
+
+export default DefaultLayout;

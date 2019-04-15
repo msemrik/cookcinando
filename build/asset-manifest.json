@@ -1,0 +1,11 @@
+{
+  "index.css": "/static/css/index.c517dbb1.css",
+  "index.js": "/static/js/index.bundle.js",
+  "index.css.map": "/static/css/index.c517dbb1.css.map",
+  "index.js.map": "/static/js/index.bundle.js.map",
+  "vendors~index.js": "/static/js/vendors~index.chunk.js",
+  "vendors~index.js.map": "/static/js/vendors~index.chunk.js.map",
+  "index.html": "/index.html",
+  "precache-manifest.c8b2342d6fff641948ec559586def301.js": "/precache-manifest.c8b2342d6fff641948ec559586def301.js",
+  "service-worker.js": "/service-worker.js"
+}
