@@ -44,7 +44,7 @@ class RecipePageList extends React.Component {
                                     You do not have any recipe. Start by Clicking on Create Recipe ;)
                                 </h1> :
 
-                                this.props.itemsToShow.map(item =>
+                                this.props.itemsToShow.filter((item)=> item).map(item =>
 
                                     <ListItem {...this.getRecipeItem(item)}/>
                                 ).reduce((prev, curr) => [prev, ' ', curr], '')
@@ -65,7 +65,7 @@ class RecipePageList extends React.Component {
             // isConfiguredPlaylist: this.props.isConfiguredPlaylist,
             // isSelected: playlist.id === this.state.selectedConfiguredPlaylist.id ? true : false,
             item: item,
-            itemRightOption: this.props.itemRightButtons(item),
+            itemRightOption: this.props.itemRightButtons? this.props.itemRightButtons(item) : undefined,
             clickAction: (playlist) => this.props.itemActionOnClick(playlist)
         }
     }

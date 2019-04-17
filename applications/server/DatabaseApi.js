@@ -14,6 +14,8 @@ let recipesSchema = new Schema({
         name: String,
         sections: [{
             order: Number,
+            name: String,
+            type: String,
             steps: [{
                 order: Number,
                 importantNotes: String,
@@ -23,7 +25,7 @@ let recipesSchema = new Schema({
                 timer: Number,
                 action: String,
                 type: String,
-                ingredients: _ [{
+                ingredients: [{
                     name: String,
                     quantity: Number,
                     units: String,
@@ -33,6 +35,29 @@ let recipesSchema = new Schema({
         }]
     }]
 });
+
+// let sectionSchema = new Schema({
+//         order: Number,
+//         name: String,
+//         type: String,
+//         steps: [{
+//             order: Number,
+//             importantNotes: String,
+//             utensils: [{
+//                 name: String
+//             }],
+//             timer: Number,
+//             action: String,
+//             type: String,
+//             ingredients: [{
+//                 name: String,
+//                 quantity: Number,
+//                 units: String,
+//                 whereToBuy: String
+//             }]
+//         ]}
+// });
+
 var RecipesModel = mongoose.model('Recipes', recipesSchema)
 
 var getDataBasePromiseConection = function () {
@@ -84,9 +109,10 @@ module.exports =
                         if (!_.find(databaseRecipeObject.recipes, {name: recipeName})) {
                             databaseRecipeObject.recipes.push({
                                 // playlistId: spotifyPlaylistObject.body.id,
-                                name: recipeName
+                                name: recipeName,
+                                sections: []
                             })
-                            this.updateDBPlaylistsObject(databaseRecipeObject)(callback);
+                            this.updateDBRecipeObject(databaseRecipeObject)(callback);
                         } else {
                             callback(createErrorObject(loggerMessages.recipeNameAlreadyExists));
                         }
@@ -121,7 +147,7 @@ module.exports =
             }
         },
 
-        updateDBPlaylistsObject: function (databaseRecipeObject) {
+        updateDBRecipeObject: function (databaseRecipeObject) {
             return (callback) => {
                 getDataBasePromiseConection().then(function () {
                     RecipesModel.findOneAndReplace({_id: databaseRecipeObject._id}, databaseRecipeObject
@@ -140,35 +166,29 @@ module.exports =
 
         },
 
-        updateRecipe: function (loggedUser, recipe, newName) {
+        addSection: function (loggedUser, newSection, recipeToUpdate) {
             return (callback) => {
 
                 async.waterfall([
                     this.getUserRecipes(loggedUser),
 
-                    // (databaseRecipeObject, callback) => {
-                    //     if (!databaseRecipeObject) {
-                    //         this.createEmptyDBRecipeObject(loggedUser.id)(callback)
-                    //     } else {
-                    //         callback(null, databaseRecipeObject);
-                    //     }
-                    // },
-
                     (databaseRecipeObject, callback) => {
+                        var recipe = _.find(databaseRecipeObject.recipes, {name: recipeToUpdate.name});
 
-                        if (!_.find(databaseRecipeObject.recipes, {name: newName})) {
-                            if (_.find(databaseRecipeObject.recipes, {name: recipe.name})) {
-                                var index = databaseRecipeObject.recipes.findIndex(oldRecipe => oldRecipe.name === recipe.name);
-                                recipe.name = newName;
-                                databaseRecipeObject.recipes[index] = recipe;
-                                this.updateDBPlaylistsObject(databaseRecipeObject)(callback);
+                        if (recipe) {
+                            var section = _.find(recipe.sections, {name: newSection.name} );
+                            if(!section){
+                                var updatedSection = _.clone(databaseRecipeObject.recipes[0].sections);
+                                updatedSection.push(newSection);
+                                recipe.sections = updatedSection;
+                                this.updateDBRecipeObject(databaseRecipeObject)(callback);
                             } else {
-                                callback(createErrorObject(loggerMessages.recipeNameDoNotExists));
+                                callback(createErrorObject(loggerMessages.sectionNameAlreadyExists));
                             }
-
                         } else {
-                            callback(createErrorObject(loggerMessages.recipeNameAlreadyExists));
+                            callback(createErrorObject(loggerMessages.recipeNameDoNotExists));
                         }
+
                     }
                 ], function (err, returnedObject) {
                     if (err) {
@@ -202,7 +222,7 @@ module.exports =
                             // playlistId: spotifyPlaylistObject.body.id,
                             // name: recipeName
                             // })
-                            this.updateDBPlaylistsObject(databaseRecipeObject)(callback);
+                            this.updateDBRecipeObject(databaseRecipeObject)(callback);
                         } else {
                             callback(createErrorObject(loggerMessages.recipeNameDoNotExists));
                         }
@@ -239,7 +259,7 @@ module.exports =
 //                     name: spotifyPlaylistObject.body.name
 //                 });
 //
-//                 updateDBPlaylistsObject(databasePlaylistObject)(callback);
+//                 updateDBRecipeObject(databasePlaylistObject)(callback);
 //             }
 //         ], function (err, returnedObject) {
 //             if (err) {
@@ -269,7 +289,7 @@ module.exports =
 //     }
 // };
 //
-// var updateDBPlaylistsObject = function (DBPlaylistsObject) {
+// var updateDBRecipeObject = function (DBPlaylistsObject) {
 //     return (callback) => {
 //         getDataBasePromiseConection().then(function () {
 //             PlaylistModel.findOneAndReplace({_id: DBPlaylistsObject._id}, DBPlaylistsObject
@@ -325,7 +345,7 @@ module.exports =
 //                     name: spotifyPlaylistObject.body.name
 //                 });
 //
-//                 updateDBPlaylistsObject(databasePlaylistObject)(callback);
+//                 updateDBRecipeObject(databasePlaylistObject)(callback);
 //             }
 //         ], function (err, returnedObject) {
 //             if (err) {
@@ -352,7 +372,7 @@ module.exports =
 //                     var storedPlaylist = _.find(userConfiguredPlaylists.playlists, {'playlistId': playlistToUpdate.id});
 //                     storedPlaylist.includedPlaylists = createIncludedPlaylists(playlistToUpdate);
 //
-//                     updateDBPlaylistsObject(userConfiguredPlaylists)(callback);
+//                     updateDBRecipeObject(userConfiguredPlaylists)(callback);
 //                 } catch (err) {
 //                     callback(createErrorObject(loggerMessages.updatingDBPlaylistInternalError, err));
 //                 }

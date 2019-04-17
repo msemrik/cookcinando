@@ -5,13 +5,15 @@ var ButtonToolbar = require('react-bootstrap').ButtonToolbar;
 var Button = require('react-bootstrap').Button;
 
 var Modal = require('react-bootstrap').Modal;
+var DropdownButton = require('react-bootstrap').DropdownButton;
+var Dropdown = require('react-bootstrap').Dropdown;
 
 class NewDialog extends React.Component {
     constructor(props, context) {
         super(props, context);
 
         this.state = {
-            lgShow: false, name: ''
+            lgShow: false, name: '', dropdownSelectedOption: ''
         };
 
         this.handleNameChange = this.handleNameChange.bind(this);
@@ -20,7 +22,7 @@ class NewDialog extends React.Component {
 
     handleClick() {
         this.lgClose();
-        this.props.action(this.state.name, this.props.item);
+        this.props.action(this.state.name, this.props.item? this.props.item: this.state.dropdownSelectedOption);
     }
 
     handleNameChange(event) {
@@ -45,6 +47,25 @@ class NewDialog extends React.Component {
                     <div className={"modal-div"}>
                         <h3 className={"modal-div-title"}>{this.props.dialogTitle}</h3>
                         <form className={"modal-div-form"}>
+
+                            {/*dialogDropdownLabel: "Select section type",*/}
+                            {/*dialogDropdownOptions: sectionsType,*/}
+                            {this.props.dialogDropdownLabel?
+                                <div className={"modal-div-form-item-group"}>
+                                    <div className="input-group mb-3">
+                                        {/*<div className="input-group-prepend">*/}
+                                        {/*<span className="input-group-text modal-div-form-item-group-input"*/}
+                                        {/*      id="basic-addon1">{this.props.dialogInputLabel}</span>*/}
+                                        {/*</div>*/}
+                                        <DropdownButton size="sm" variant="success" title={this.state.dropdownSelectedOption? this.state.dropdownSelectedOption: this.props.dialogDropdownLabel}>
+                                            {this.props.dialogDropdownOptions.map((option) =>
+                                                <Dropdown.Item onClick={() =>this.updateDropdownSelectedOption(option)} >{option
+                                                }</Dropdown.Item>
+                                            )}
+                                        </DropdownButton>
+                                    </div>
+                                </div> : undefined}
+
                             {this.props.dialogInputLabel?
                             <div className={"modal-div-form-item-group"}>
                                 <div className="input-group mb-3">
@@ -69,6 +90,10 @@ class NewDialog extends React.Component {
                 </Modal>
             </ButtonToolbar>
         );
+    }
+
+    updateDropdownSelectedOption(option){
+        this.setState({dropdownSelectedOption: option});
     }
 }
 

@@ -33,6 +33,18 @@ function initRestEndPoints(app) {
         restController.updateRecipe(req, res);
     });
 
+    app.post('/addsection',
+        // validate({body: CreatePlaylistSchema}),
+        function (req, res) {
+            restController.addSection(req, res);
+        });
+
+    app.post('/removesection',
+            // validate({body: CreatePlaylistSchema}),
+            function (req, res) {
+                restController.removeSection(req, res);
+            });
+
 
 
     //

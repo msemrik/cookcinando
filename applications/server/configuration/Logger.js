@@ -75,6 +75,13 @@ module.exports = {
         recipeNameDoNotExists: {errorCode: "600-06-01", errorMessage: "The selected recipe was not found on DB. "
             , errorToShow: "The selected recipe was not found on DB. "},
 
+        sectionNameAlreadyExists: {errorCode: "600-06-01", errorMessage: "The selected section  name already exists. "
+            , errorToShow: "The selected recipe name already exists. "},
+
+        sectionNameDoNotExists: {errorCode: "600-06-01", errorMessage: "The selected section was not found on DB. "
+            , errorToShow: "The selected recipe was not found on DB. "},
+
+
     },
 
 

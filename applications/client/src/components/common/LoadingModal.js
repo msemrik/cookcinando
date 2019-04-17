@@ -28,11 +28,11 @@ class LoadingModal extends React.Component {
                 this.setState({lgShow: nextProps.showLoadingModal});
             } else {
                 var timeElapsed = new Date() - lastTimeOpened;
-                if (Math.floor((timeElapsed / 1000)) < 3) {
-                    setTimeout(() => this.setState({lgShow: nextProps.showLoadingModal}), 3000 - timeElapsed)
-                } else {
+                // if (Math.floor((timeElapsed / 1000)) < 3) {
+                //     setTimeout(() => this.setState({lgShow: nextProps.showLoadingModal}), 3000 - timeElapsed)
+                // } else {
                     this.setState({lgShow: nextProps.showLoadingModal});
-                }
+                // }
             }
 
 

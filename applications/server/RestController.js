@@ -105,6 +105,49 @@ module.exports = {
         });
     },
 
+    addSection: function (req, res) {
+        var section = req.body.section;
+        var recipe = req.body.recipe;
+
+        async.waterfall([
+
+            database.addSection("msemrik", section, recipe)
+        ], function (err) {
+            if (err) {
+                logger.error(generateErrorMessageToLog(err));
+                res.status(500);
+                res.json(generateErrorObjectToReturn(err.errorObject));
+                res.end();
+                return;
+            } else {
+                res.status(200);
+                res.end();
+            }
+        });
+    },
+
+    removeSection: function (req, res) {
+        var section = req.body.section;
+        var recipe = req.body.recipe;
+
+
+        async.waterfall([
+
+            database.removeSection("msemrik", section, recipe)
+        ], function (err) {
+            if (err) {
+                logger.error(generateErrorMessageToLog(err));
+                res.status(500);
+                res.json(generateErrorObjectToReturn(err.errorObject));
+                res.end();
+                return;
+            } else {
+                res.status(200);
+                res.end();
+            }
+        });
+    },
+
     // isLogged: function (req, res) {
     //     try {
     //         var loggedUser = sessionHandler.isLogged(req.sessionID)
