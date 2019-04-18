@@ -1,6 +1,7 @@
 import React from 'react';
 import RecipePageList from "../RecipePageComponents/RecipePageList";
 import NewDialog from "../RecipePageComponents/NewDialog";
+import StepDialog from "../RecipePageComponents/StepDialog";
 import sectionsType from "../../enum/SectionsType";
 import './RecipesPage.css';
 import _ from "lodash";
@@ -13,8 +14,13 @@ class RecipesPage extends React.Component {
         this.state = {userRecipes: [], recipesToBeShown: ''};
         this.getUserRecipes = this.getUserRecipes.bind(this);
         this.createRecipe = this.createRecipe.bind(this);
+        this.renameRecipe= this.renameRecipe.bind(this);
+        this.removeRecipe = this.removeRecipe.bind(this);
         this.addSection = this.addSection.bind(this);
-        // this.savePlaylistsConfiguration = this.savePlaylistsConfiguration.bind(this);
+        this.editSection = this.editSection.bind(this);
+        this.copySection = this.copySection.bind(this);
+        this.removeSection = this.removeSection.bind(this);
+           // this.savePlaylistsConfiguration = this.savePlaylistsConfiguration.bind(this);
     }
 
     componentDidMount() {
@@ -37,7 +43,14 @@ class RecipesPage extends React.Component {
                     var state = this;
                     if (result.ok) {
                         result.json().then(function (response) {
-                            state.setState({userRecipes: response.recipes});
+                            // if(state.selectedRecipe){
+                            //
+                            // }
+                            var selectedRecipe;
+                            if(state.state.selectedRecipe){
+                                selectedRecipe = _.find(response.recipes, {name: state.state.selectedRecipe.name});
+                            }
+                            state.setState({userRecipes: response.recipes, selectedRecipe: selectedRecipe});
                             state.props.hideLoadingModal();
                         });
                     } else {
@@ -85,6 +98,11 @@ class RecipesPage extends React.Component {
                     className={this.state.selectedRecipe ? "playlist-page-spotify-playlist" : "playlist-page-spotify-playlist playlist-page-spotify-playlist-not-showed"}>
                     <RecipePageList {...this.prepareSectionList()} />
                 </div>
+
+                <div
+                    className={this.state.selectedSection ? "playlist-page-spotify-playlist" : "playlist-page-spotify-playlist playlist-page-spotify-playlist-not-showed"}>
+                    <RecipePageList {...this.prepareStepList()} />
+                </div>
             </div>
         );
     }
@@ -97,11 +115,55 @@ class RecipesPage extends React.Component {
             itemsToShow: this.state.userRecipes,
             // selectedConfiguredPlaylist: this.state.selectedConfiguredPlaylist,
 
+            emptyMessage: "You do not have any recipe. Start by Clicking on Create Recipe. ",
             itemActionOnClick: (recipe) => this.updateSelectedRecipe(recipe),
 
             itemRightButtons: (item) => this.getRecipeItemRightButtons(item)
             // itemRemoveAction: (recipe) => this.removeRecipe(recipe),
             // itemRenameAction: (recipe) => this.renameRecipe(recipe),
+        }
+    }
+
+    prepareSectionList() {
+        return {
+            listTitle: "Recipe's Sections",
+            listButton: <NewDialog {...this.getAddSectionDialog()} />,
+            // isConfiguredPlaylist: true,
+            itemsToShow: this.state.selectedRecipe ? this.state.selectedRecipe.sections : undefined,
+            // selectedConfiguredPlaylist: this.state.selectedConfiguredPlaylist,
+            emptyMessage: "You do not have any section. Start by Clicking on Add Section. ",
+            itemActionOnClick: (section) => this.updateSelectedSection(section),
+            itemRightButtons: (item) => this.getSectionItemRightButtons(item)
+            // itemRemoveAction: (recipe) => this.removeRecipe(recipe),
+            // itemRenameAction: (recipe) => this.renameRecipe(recipe),
+        }
+    }
+
+    prepareStepList() {
+        return {
+            listTitle: "Section's steps",
+            listButton: <StepDialog {...this.getAddStepDialog()} />,
+            // isConfiguredPlaylist: true,
+            itemsToShow: this.state.selectedSection ? this.state.selectedSection.steps : undefined,
+            // selectedConfiguredPlaylist: this.state.selectedConfiguredPlaylist,
+            emptyMessage: "You do not have any step. Start by Clicking on Add Step. ",
+            itemActionOnClick: (section) => this.updateSelectedSection(section),
+            itemRightButtons: (item) => this.getSectionItemRightButtons(item)
+            // itemRemoveAction: (recipe) => this.removeRecipe(recipe),
+            // itemRenameAction: (recipe) => this.renameRecipe(recipe),
+        }
+    }
+
+    getAddStepDialog() {
+        return {
+            buttonText: "Add Step",
+        //     dialogTitle: "Create Section",
+        //     dialogButton: <StepDialog {...this.getCopySectionDialog()} />,
+        //     dialogDropdownLabel: "Select section type",
+        //     dialogDropdownOptions: sectionsType,
+        //     dialogInputLabel: "Section Name",
+        //     action: this.addSection,
+        //     okButtonText: "Add Section"
         }
     }
 
@@ -115,17 +177,25 @@ class RecipesPage extends React.Component {
         }
     }
 
-    prepareSectionList() {
+    getRenameRecipeDialog(item) {
         return {
-            listTitle: "Recipe's Sections",
-            listButton: <NewDialog {...this.getAddSectionDialog()} />,
-            // isConfiguredPlaylist: true,
-            itemsToShow: this.state.selectedRecipe ? this.state.selectedRecipe.sections : undefined,
-            // selectedConfiguredPlaylist: this.state.selectedConfiguredPlaylist,
-            itemActionOnClick: (recipe) => this.updateSelectedSection(recipe),
-            itemRightButtons: (item) => this.getSectionItemRightButtons(item)
-            // itemRemoveAction: (recipe) => this.removeRecipe(recipe),
-            // itemRenameAction: (recipe) => this.renameRecipe(recipe),
+            item: item,
+            buttonText: "Rename Recipe",
+            dialogTitle: "Rename Recipe " + item.name,
+            dialogInputLabel: "Recipe Name",
+            action: this.renameRecipe,
+            okButtonText: "Rename Recipe"
+        }
+    }
+
+    getRemoveRecipeDialog(item) {
+        return {
+            item: item,
+            buttonText: "Remove Recipe",
+            dialogTitle: "Are you sure you want to remove " + item.name + " ?",
+            // dialogInputLabel: "Recipe Name",
+            action: this.removeRecipe,
+            okButtonText: "Remove Recipe"
         }
     }
 
@@ -133,6 +203,7 @@ class RecipesPage extends React.Component {
         return {
             buttonText: "Add Section",
             dialogTitle: "Create Section",
+            dialogButton: <NewDialog {...this.getCopySectionDialog()} />,
             dialogDropdownLabel: "Select section type",
             dialogDropdownOptions: sectionsType,
             dialogInputLabel: "Section Name",
@@ -141,6 +212,51 @@ class RecipesPage extends React.Component {
         }
     }
 
+    getEditSectionDialog(item) {
+        return {
+            item: item,
+            buttonText: "Edit Section",
+            dialogTitle: "Editing section: " + item.name,
+            dialogInputLabel: "Section Name",
+            dialogInputInitValue: item.name,
+            dialogDropdownLabel: "Select section type",
+            dialogDropdownOptions: sectionsType,
+            dialogDropdownInitValue: {textToShow: item.sectionType, type: item.sectionType},
+            action: this.editSection,
+            okButtonText: "Save changes"
+        }
+    }
+
+    getRemoveSectionDialog(item) {
+        return {
+            item: item,
+            buttonText: "Remove Section",
+            dialogTitle: "Are you sure you want to remove " + item.name + " ?",
+            // dialogInputLabel: "Recipe Name",
+            action: this.removeSection,
+            okButtonText: "Remove section"
+        }
+    }
+
+    getCopySectionDialog() {
+        return {
+            buttonText: "Copy from existing Section",
+            dialogTitle: "Copy Section",
+            dialogDropdownLabel: "Select section to copy",
+            dialogDropdownOptions: this.getSectionsToCopy(),
+            dialogInputLabel: "Section Name",
+            action: this.copySection,
+            okButtonText: "Add Section"
+        }
+    }
+
+    getSectionsToCopy() {
+        var flatMap = (f, arr) => arr.reduce((x, y) => [...x, ...f(y)], []);
+
+        // var sections = this.state.userRecipes.flatMap(recipe => recipe.sections.map(section => {recipe.name + " - " + section.name}));
+        var sections = this.state.userRecipes.flatMap(recipe => recipe.sections.map(section => new Object({"recipe": recipe, "section": section, "textToShow": recipe.name + " - " + section.name})));
+        return sections;
+    }
 
     getRecipeItemRightButtons(item) {
         return (
@@ -155,57 +271,12 @@ class RecipesPage extends React.Component {
         return (
             <div>
                 <NewDialog {...this.getRemoveSectionDialog(item)} />
-                {/*<NewDialog {...this.getRenameSectionDialog(item)} />*/}
+                <NewDialog {...this.getEditSectionDialog(item)} />
             </div>
         );
     }
 
-    getRemoveRecipeDialog(item) {
-        return {
-            item: item,
-            buttonText: "Remove Recipe",
-            dialogTitle: "Are you sure you want to remove " + item.name + " ?",
-            // dialogInputLabel: "Recipe Name",
-            action: (name, item) => this.removeRecipe(name, item),
-            okButtonText: "Remove Recipe"
-        }
-    }
-
-    getRenameRecipeDialog(item) {
-        return {
-            item: item,
-            buttonText: "Rename Recipe",
-            dialogTitle: "Rename Recipe " + item.name,
-            dialogInputLabel: "Recipe Name",
-            action: (name, item) => this.renameRecipe(name, item),
-            okButtonText: "Rename Recipe"
-        }
-    }
-
-    getRemoveSectionDialog(item) {
-        return {
-            item: item,
-            buttonText: "Remove Section",
-            dialogTitle: "Are you sure you want to remove " + item.name + " ?",
-            // dialogInputLabel: "Recipe Name",
-            action: (name, item) => this.removeSection(name, item),
-            okButtonText: "Remove section"
-        }
-    }
-
-    //TODO ADD UPDATE SECTION (show dialog)
-    getRenameSectionDialog(item) {
-        return {
-            // item: item,
-            // buttonText: "Rename Section",
-            // dialogTitle: "Rename Recipe " + item.name,
-            // dialogInputLabel: "Recipe Name",
-            // action: (name, item) => this.renameRecipe(name, item),
-            // okButtonText: "Rename Recipe"
-        }
-    }
-
-    createRecipe(name) {
+    createRecipe(item, name) {
         this.props.showLoadingModal();
         fetch('/createrecipe', {
             method: 'POST',
@@ -227,8 +298,8 @@ class RecipesPage extends React.Component {
         )
     }
 
-    addSection(name, type) {
-        if (!name || !type) {
+    addSection(item, name, type) {
+        if (!name || !type.type) {
             this.props.handleResponse(this.createError("Name and Type are mandatory fields"));
         } else {
             this.props.showLoadingModal();
@@ -239,7 +310,7 @@ class RecipesPage extends React.Component {
                     recipe: this.state.selectedRecipe,
                     section: {
                         name: name,
-                        type: type
+                        sectionType: type.type
                     }
                 }),
                 redirect: 'manual'
@@ -247,7 +318,42 @@ class RecipesPage extends React.Component {
                     var state = this;
                     if (result.ok) {
                         this.getUserRecipes();
-                        state.props.handleResponse({messageToShow: "Recipe Successfully created =D"});
+                        state.props.handleResponse({messageToShow: "Section Successfully added =D"});
+                    } else {
+                        result.json().then(function (error) {
+                            state.props.handleResponse(error);
+                            state.props.hideLoadingModal();
+                        });
+                    }
+                }
+            )
+        }
+
+    }
+
+    copySection(item, name, sectionToCopy) {
+        if (!name || !sectionToCopy) {
+            this.props.handleResponse(this.createError("Name and Section to copy are mandatory fields"));
+        } else {
+            this.props.showLoadingModal();
+            fetch('/copysection', {
+                method: 'POST',
+                headers: {'Content-Type': "application/json"},
+                body: JSON.stringify({
+                    recipe: this.state.selectedRecipe,
+                    name: name,
+                    section: {
+                        name: sectionToCopy.section.name,
+                        recipe: sectionToCopy.recipe.name,
+                        // sectionType: type
+                    }
+                }),
+                redirect: 'manual'
+            }).then((result) => {
+                    var state = this;
+                    if (result.ok) {
+                        this.getUserRecipes();
+                        state.props.handleResponse({messageToShow: "Section Successfully copied =D"});
                     } else {
                         result.json().then(function (error) {
                             state.props.handleResponse(error);
@@ -264,7 +370,7 @@ class RecipesPage extends React.Component {
         return {errorToShow: errorMessage};
     }
 
-    removeRecipe(name, item) {
+    removeRecipe(item) {
         this.props.showLoadingModal();
         fetch('/removerecipe', {
             method: 'POST',
@@ -286,7 +392,7 @@ class RecipesPage extends React.Component {
         )
     }
 
-    removeSection(name, item) {
+    removeSection(item, name) {
         this.props.showLoadingModal();
         fetch('/removesection', {
             method: 'POST',
@@ -308,12 +414,38 @@ class RecipesPage extends React.Component {
         )
     }
 
-    renameRecipe(name, item) {
+    editSection(item, name, selectedType) {
+        if (!name || !selectedType) {
+            this.props.handleResponse(this.createError("Name and Type are mandatory fields"));
+        } else {
+            this.props.showLoadingModal();
+            fetch('/updatesection', {
+                method: 'POST',
+                headers: {'Content-Type': "application/json"},
+                body: JSON.stringify({section: item, recipe: this.state.selectedRecipe, newName: name, newSelectedType: selectedType.type}),
+                redirect: 'manual'
+            }).then((result) => {
+                    var state = this;
+                    if (result.ok) {
+                        this.getUserRecipes();
+                        state.props.handleResponse({messageToShow: "Recipe Successfully updated"});
+                    } else {
+                        result.json().then(function (error) {
+                            state.props.handleResponse(error);
+                            state.props.hideLoadingModal();
+                        });
+                    }
+                }
+            )
+        }
+    }
+
+    renameRecipe(item, name) {
         this.props.showLoadingModal();
         fetch('/updaterecipe', {
             method: 'POST',
             headers: {'Content-Type': "application/json"},
-            body: JSON.stringify({item: item, name: name}),
+            body: JSON.stringify({recipe: item, name: name}),
             redirect: 'manual'
         }).then((result) => {
                 var state = this;
@@ -333,20 +465,13 @@ class RecipesPage extends React.Component {
     updateSelectedRecipe(recipe) {
         this.setState({
             selectedRecipe: recipe,
-            // spotifyPlaylistsToBeShown: this.state.userPlaylists.spotifyPlaylists.map((spotifyPlaylist) => {
-            //     spotifyPlaylist.selected = _.find(playlist.includedPlaylists, {"playlistId": spotifyPlaylist.id}) ? true : false;
-            //     return spotifyPlaylist;
-            // })
+            selectedSection: '',
         })
     }
 
     updateSelectedSection(section) {
         this.setState({
             selectedSection: section,
-            // spotifyPlaylistsToBeShown: this.state.userPlaylists.spotifyPlaylists.map((spotifyPlaylist) => {
-            //     spotifyPlaylist.selected = _.find(playlist.includedPlaylists, {"playlistId": spotifyPlaylist.id}) ? true : false;
-            //     return spotifyPlaylist;
-            // })
         })
     }
 

@@ -45,6 +45,17 @@ function initRestEndPoints(app) {
                 restController.removeSection(req, res);
             });
 
+    app.post('/updatesection',
+        // validate({body: CreatePlaylistSchema}),
+        function (req, res) {
+            restController.updateSection(req, res);
+        });
+
+    app.post('/copysection',
+            // validate({body: CreatePlaylistSchema}),
+            function (req, res) {
+                restController.copySection(req, res);
+            });
 
 
     //

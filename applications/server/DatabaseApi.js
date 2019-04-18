@@ -15,16 +15,16 @@ let recipesSchema = new Schema({
         sections: [{
             order: Number,
             name: String,
-            type: String,
+            sectionType: String,
             steps: [{
                 order: Number,
+                action: String,
+                stepType: String,
+                timer: Number,
                 importantNotes: String,
                 utensils: [{
                     name: String
                 }],
-                timer: Number,
-                action: String,
-                type: String,
                 ingredients: [{
                     name: String,
                     quantity: Number,
@@ -129,6 +129,71 @@ module.exports =
             }
         },
 
+        updateRecipe: function (loggedUser, recipeToUpdate, newRecipeName) {
+            return (callback) => {
+
+                async.waterfall([
+                    this.getUserRecipes(loggedUser),
+
+                    (databaseRecipeObject, callback) => {
+                        var recipe = _.find(databaseRecipeObject.recipes, {name: recipeToUpdate.name})
+                        if (recipe) {
+                            recipe.name = newRecipeName;
+                            this.updateDBRecipeObject(databaseRecipeObject)(callback);
+                        } else {
+                            callback(createErrorObject(loggerMessages.recipeNameDoNotExists));
+                        }
+                        ;
+
+                    }
+                ], function (err, returnedObject) {
+                    if (err) {
+                        callback(err);
+                    } else {
+                        callback(null, returnedObject)
+                    }
+                });
+            }
+        },
+
+        removeRecipe: function (loggedUser, recipeName) {
+            return (callback) => {
+
+                async.waterfall([
+                    this.getUserRecipes(loggedUser),
+
+                    // (databaseRecipeObject, callback) => {
+                    //     if (!databaseRecipeObject) {
+                    //         this.createEmptyDBRecipeObject(loggedUser.id)(callback)
+                    //     } else {
+                    //         callback(null, databaseRecipeObject);
+                    //     }
+                    // },
+
+                    (databaseRecipeObject, callback) => {
+                        if (_.find(databaseRecipeObject.recipes, {name: recipeName})) {
+                            databaseRecipeObject.recipes = _.remove(databaseRecipeObject.recipes, (recipe) => recipe.name !== recipeName);
+                            // databaseRecipeObject.recipes.push({
+                            // playlistId: spotifyPlaylistObject.body.id,
+                            // name: recipeName
+                            // })
+                            this.updateDBRecipeObject(databaseRecipeObject)(callback);
+                        } else {
+                            callback(createErrorObject(loggerMessages.recipeNameDoNotExists));
+                        }
+                        ;
+
+                    }
+                ], function (err, returnedObject) {
+                    if (err) {
+                        callback(err);
+                    } else {
+                        callback(null, returnedObject)
+                    }
+                });
+            }
+        },
+
         createEmptyDBRecipeObject: function (loggedUserId) {
             return (callback) => {
                 let newDBRecipeModelToBeSave = new RecipesModel();
@@ -176,12 +241,15 @@ module.exports =
                         var recipe = _.find(databaseRecipeObject.recipes, {name: recipeToUpdate.name});
 
                         if (recipe) {
-                            var section = _.find(recipe.sections, {name: newSection.name} );
-                            if(!section){
-                                var updatedSection = _.clone(databaseRecipeObject.recipes[0].sections);
-                                updatedSection.push(newSection);
-                                recipe.sections = updatedSection;
-                                this.updateDBRecipeObject(databaseRecipeObject)(callback);
+                            var section = _.find(recipe.sections, {name: newSection.name});
+                            if (!section) {
+                                RecipesModel.updateOne(
+                                    {"_id": loggedUser, "recipes.name": recipeToUpdate.name},
+                                    {"$push": {"recipes.$.sections": newSection}},
+                                    function (err, raw) {
+                                        if (err) callback(createErrorObject(loggerMessages.addingSectionDBError, err));
+                                        callback(null, raw);
+                                    })
                             } else {
                                 callback(createErrorObject(loggerMessages.sectionNameAlreadyExists));
                             }
@@ -201,32 +269,27 @@ module.exports =
 
         },
 
-        removeRecipe: function (loggedUser, recipeName) {
+        updateSection: function (loggedUser, sectionToUpdate, recipeToUpdate, newName, newSelectedType) {
             return (callback) => {
 
                 async.waterfall([
                     this.getUserRecipes(loggedUser),
 
-                    // (databaseRecipeObject, callback) => {
-                    //     if (!databaseRecipeObject) {
-                    //         this.createEmptyDBRecipeObject(loggedUser.id)(callback)
-                    //     } else {
-                    //         callback(null, databaseRecipeObject);
-                    //     }
-                    // },
-
                     (databaseRecipeObject, callback) => {
-                        if (_.find(databaseRecipeObject.recipes, {name: recipeName})) {
-                            databaseRecipeObject.recipes = _.remove(databaseRecipeObject.recipes, (recipe) => recipe.name !== recipeName);
-                            // databaseRecipeObject.recipes.push({
-                            // playlistId: spotifyPlaylistObject.body.id,
-                            // name: recipeName
-                            // })
-                            this.updateDBRecipeObject(databaseRecipeObject)(callback);
+                        var recipe = _.find(databaseRecipeObject.recipes, {name: recipeToUpdate.name});
+
+                        if (recipe) {
+                            var section = _.find(recipe.sections, {name: sectionToUpdate.name});
+                            if (section) {
+                                section.name = newName;
+                                section.sectionType = newSelectedType;
+                                this.updateDBRecipeObject(databaseRecipeObject)(callback);
+                            } else {
+                                callback(createErrorObject(loggerMessages.sectionNameDoNotExists));
+                            }
                         } else {
                             callback(createErrorObject(loggerMessages.recipeNameDoNotExists));
                         }
-                        ;
 
                     }
                 ], function (err, returnedObject) {
@@ -237,7 +300,110 @@ module.exports =
                     }
                 });
             }
-        }
+
+        },
+
+        copySection: function (loggedUser, recipeToUpdate, sectionToCopy, newName) {
+            return (callback) => {
+
+                async.waterfall([
+                    this.getUserRecipes(loggedUser),
+
+                    (databaseRecipeObject, callback) => {
+                        var recipeForUpdating = _.find(databaseRecipeObject.recipes, {name: recipeToUpdate.name});
+                        if (recipeForUpdating) {
+                            if(!_.find(recipeForUpdating.sections, {name: newName})){
+                                var recipeForCopying = _.find(databaseRecipeObject.recipes, {name: sectionToCopy.recipe})
+                                if(recipeForCopying){
+                                    var sectionForCopying = _.find(recipeForCopying.sections, {name: sectionToCopy.name})
+                                    if(sectionForCopying){
+                                        sectionForCopying.name = newName;
+                                        RecipesModel.updateOne(
+                                            {"_id": loggedUser, "recipes.name": recipeToUpdate.name},
+                                            {"$push": {"recipes.$.sections": sectionForCopying}},
+                                            function (err, raw) {
+                                                if (err) callback(createErrorObject(loggerMessages.addingSectionDBError, err));
+                                                callback(null, raw);
+                                            })
+                                    }else{
+                                        callback(createErrorObject(loggerMessages.sectionNameDoNotExists));
+                                    }
+                                } else {
+                                    callback(createErrorObject(loggerMessages.recipeNameDoNotExists));
+                                }
+                            } else {
+                                callback(createErrorObject(loggerMessages.sectionNameAlreadyExists));
+                            }
+                        }
+                        else {
+                            callback(createErrorObject(loggerMessages.recipeNameDoNotExists));
+                        }
+
+
+
+                            // if (section) {
+                            //     var newSection = _.clone(section);
+                            //     newSection.name = newName;
+                            //     // section.sectionType = newSelectedType;
+                            //     // this.updateDBRecipeObject(databaseRecipeObject)(callback);
+                            //     // RecipesModel.updateOne(
+                            //     //     {"_id": loggedUser, "recipes.name": recipeToUpdate.name},
+                            //     //     {"$pull": {"recipes.$.sections": sectionToRemove}},
+                            //     //     function (err, raw) {
+                            //     //         if (err) callback(createErrorObject(loggerMessages.addingSectionDBError, err));
+                            //     //         callback(null, raw);
+                            //     //     })
+                            // }
+                        // }
+                    }
+                ], function (err, returnedObject) {
+                    if (err) {
+                        callback(err);
+                    } else {
+                        callback(null, returnedObject)
+                    }
+                });
+            }
+
+        },
+
+        removeSection: function (loggedUser, sectionToRemove, recipeToUpdate) {
+            return (callback) => {
+
+                async.waterfall([
+                    this.getUserRecipes(loggedUser),
+
+                    (databaseRecipeObject, callback) => {
+                        var recipe = _.find(databaseRecipeObject.recipes, {name: recipeToUpdate.name});
+
+                        if (recipe) {
+                            var section = _.find(recipe.sections, {name: sectionToRemove.name});
+                            if (section) {
+                                RecipesModel.updateOne(
+                                    {"_id": loggedUser, "recipes.name": recipeToUpdate.name},
+                                    {"$pull": {"recipes.$.sections": sectionToRemove}},
+                                    function (err, raw) {
+                                        if (err) callback(createErrorObject(loggerMessages.addingSectionDBError, err));
+                                        callback(null, raw);
+                                    })
+                            } else {
+                                callback(createErrorObject(loggerMessages.sectionNameDoNotExists));
+                            }
+                        } else {
+                            callback(createErrorObject(loggerMessages.recipeNameDoNotExists));
+                        }
+
+                    }
+                ], function (err, returnedObject) {
+                    if (err) {
+                        callback(err);
+                    } else {
+                        callback(null, returnedObject)
+                    }
+                });
+            }
+
+        },
     };
 // var addPlaylist = function (loggedUser, spotifyPlaylistObject) {
 //     return (callback) => {

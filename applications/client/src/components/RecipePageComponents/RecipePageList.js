@@ -41,7 +41,7 @@ class RecipePageList extends React.Component {
                             (this.props.itemsToShow.length === 0) ?
                                 <h1 className={"playlist-list-title-text"}>
                                     <br/>
-                                    You do not have any recipe. Start by Clicking on Create Recipe ;)
+                                    {this.props.emptyMessage}
                                 </h1> :
 
                                 this.props.itemsToShow.filter((item)=> item).map(item =>

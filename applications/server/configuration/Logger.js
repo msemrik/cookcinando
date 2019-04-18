@@ -81,6 +81,8 @@ module.exports = {
         sectionNameDoNotExists: {errorCode: "600-06-01", errorMessage: "The selected section was not found on DB. "
             , errorToShow: "The selected recipe was not found on DB. "},
 
+        addingSectionDBError: {errorCode: "600-06-01", errorMessage: "The section could not be added dut to db error. "
+            , errorToShow: "Error while adding section to recipe. "},
 
     },
 

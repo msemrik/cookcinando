@@ -85,7 +85,7 @@ module.exports = {
     },
 
     updateRecipe: function (req, res) {
-        var recipe = req.body.item;
+        var recipe = req.body.recipe;
         var newName = req.body.name;
 
         async.waterfall([
@@ -134,6 +134,54 @@ module.exports = {
         async.waterfall([
 
             database.removeSection("msemrik", section, recipe)
+        ], function (err) {
+            if (err) {
+                logger.error(generateErrorMessageToLog(err));
+                res.status(500);
+                res.json(generateErrorObjectToReturn(err.errorObject));
+                res.end();
+                return;
+            } else {
+                res.status(200);
+                res.end();
+            }
+        });
+    },
+
+    updateSection: function (req, res) {
+        var section = req.body.section;
+        var recipe = req.body.recipe;
+        var newName = req.body.newName;
+        var newSelectedType = req.body.newSelectedType;
+
+
+        async.waterfall([
+
+            database.updateSection("msemrik", section, recipe, newName, newSelectedType)
+        ], function (err) {
+            if (err) {
+                logger.error(generateErrorMessageToLog(err));
+                res.status(500);
+                res.json(generateErrorObjectToReturn(err.errorObject));
+                res.end();
+                return;
+            } else {
+                res.status(200);
+                res.end();
+            }
+        });
+    },
+
+    copySection: function (req, res) {
+        var recipeToUpdate = req.body.recipe;
+        var sectionToCopy = req.body.section;
+        var newName = req.body.name;
+        // var newSelectedType = req.body.newSelectedType;
+
+
+        async.waterfall([
+
+            database.copySection("msemrik", recipeToUpdate, sectionToCopy, newName)
         ], function (err) {
             if (err) {
                 logger.error(generateErrorMessageToLog(err));

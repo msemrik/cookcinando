@@ -13,7 +13,7 @@ class NewDialog extends React.Component {
         super(props, context);
 
         this.state = {
-            lgShow: false, name: '', dropdownSelectedOption: ''
+            lgShow: false, name: this.props.dialogInputInitValue, dropdownSelectedOption: this.props.dialogDropdownInitValue
         };
 
         this.handleNameChange = this.handleNameChange.bind(this);
@@ -22,19 +22,19 @@ class NewDialog extends React.Component {
 
     handleClick() {
         this.lgClose();
-        this.props.action(this.state.name, this.props.item? this.props.item: this.state.dropdownSelectedOption);
+        this.props.action(this.props.item, this.state.name, this.state.dropdownSelectedOption);
     }
 
     handleNameChange(event) {
         this.setState({name: event.target.value});
     }
 
-    lgClose = () => this.setState({lgShow: false, name: ''});
+    lgClose = () => this.setState({lgShow: false});
 
     render() {
         return (
             <ButtonToolbar>
-                <Button className={"playlist-list-button-div-button"} onClick={() => this.setState({lgShow: true})}>
+                <Button className={"playlist-list-button-div-button"} onClick={() => this.setState({lgShow: true, name: this.props.dialogInputInitValue, dropdownSelectedOption: this.props.dialogDropdownInitValue})}>
                     {this.props.buttonText}
                 </Button>
 
@@ -48,8 +48,14 @@ class NewDialog extends React.Component {
                         <h3 className={"modal-div-title"}>{this.props.dialogTitle}</h3>
                         <form className={"modal-div-form"}>
 
-                            {/*dialogDropdownLabel: "Select section type",*/}
-                            {/*dialogDropdownOptions: sectionsType,*/}
+                            {this.props.dialogButton ?
+                                <div className={"modal-div-form-item-group"}>
+                                    <div className="input-group mb-3">
+                                        {this.props.dialogButton}
+                                    </div>
+                                </div> : undefined}
+
+
                             {this.props.dialogDropdownLabel?
                                 <div className={"modal-div-form-item-group"}>
                                     <div className="input-group mb-3">
@@ -57,9 +63,9 @@ class NewDialog extends React.Component {
                                         {/*<span className="input-group-text modal-div-form-item-group-input"*/}
                                         {/*      id="basic-addon1">{this.props.dialogInputLabel}</span>*/}
                                         {/*</div>*/}
-                                        <DropdownButton size="sm" variant="success" title={this.state.dropdownSelectedOption? this.state.dropdownSelectedOption: this.props.dialogDropdownLabel}>
+                                        <DropdownButton size="sm" variant="success" title={this.state.dropdownSelectedOption? this.state.dropdownSelectedOption.textToShow: this.props.dialogDropdownLabel}>
                                             {this.props.dialogDropdownOptions.map((option) =>
-                                                <Dropdown.Item onClick={() =>this.updateDropdownSelectedOption(option)} >{option
+                                                <Dropdown.Item onClick={() =>this.updateDropdownSelectedOption(option)} >{option.textToShow
                                                 }</Dropdown.Item>
                                             )}
                                         </DropdownButton>
