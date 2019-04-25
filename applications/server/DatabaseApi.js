@@ -404,6 +404,50 @@ module.exports =
             }
 
         },
+
+        addStep: function (loggedUser, recipeToUpdate, sectionToUpdate, newStep) {
+            return (callback) => {
+
+                async.waterfall([
+                    this.getUserRecipes(loggedUser),
+
+                    (databaseRecipeObject, callback) => {
+                        var recipe = _.find(databaseRecipeObject.recipes, {name: recipeToUpdate.name});
+
+                        if (recipe) {
+                            var section = _.find(recipe.sections, {name: sectionToUpdate.name});
+                            if (section) {
+                                var step = _.find(section.steps, {name: newStep.name});
+                                if(!step){
+                                    RecipesModel.updateOne(
+                                        {"_id": loggedUser/*, "recipes.name": recipeToUpdate.name, "recipes.sections.name": sectionToUpdate.name*/},
+                                        {"$push": {"recipes.$[i].sections.$[j].steps": newStep}}, {arrayFilters: [{"i.name": recipeToUpdate.name}, {"j.name": sectionToUpdate.name}]},
+                                        function (err, raw) {
+                                            if (err) callback(createErrorObject(loggerMessages.addingStepDBError, err));
+                                            callback(null, raw);
+                                        })
+                                }
+                                else{
+                                    callback(createErrorObject(loggerMessages.stepActionAlreadyExists))
+                                }
+                            } else {
+                                callback(createErrorObject(loggerMessages.sectionNameDoNotExists));
+                            }
+                        } else {
+                            callback(createErrorObject(loggerMessages.recipeNameDoNotExists));
+                        }
+
+                    }
+                ], function (err, returnedObject) {
+                    if (err) {
+                        callback(err);
+                    } else {
+                        callback(null, returnedObject)
+                    }
+                });
+            }
+
+        },
     };
 // var addPlaylist = function (loggedUser, spotifyPlaylistObject) {
 //     return (callback) => {

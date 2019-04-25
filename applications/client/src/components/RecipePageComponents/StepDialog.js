@@ -1,5 +1,6 @@
 import './NewDialog.css';
-import UtensilsDialog  from "./UtensilsDialog";
+import UtensilsDialog from "./UtensilsDialog";
+import IngredientsDialog from "./IngredientsDialog";
 import stepType from "../../enum/StepType";
 import utensils from "../../enum/Utensils";
 
@@ -30,7 +31,7 @@ class StepDialog extends React.Component {
 
     handleClick() {
         this.lgClose();
-        this.props.action(this.props.item, this.state.name, this.state.dropdownSelectedOption);
+        this.props.action(this.state.action, this.state.importantNotes);
     }
 
     handleActionChange(event) {
@@ -97,6 +98,12 @@ class StepDialog extends React.Component {
                             <div className={"modal-div-form-item-group"}>
                                 <div className="input-group mb-3">
                                     <UtensilsDialog {...this.getUtensilsDialogProps()}/>
+                                </div>
+                            </div>
+
+                            <div className={"modal-div-form-item-group"}>
+                                <div className="input-group mb-3">
+                                    <IngredientsDialog {...this.getUtensilsDialogProps()}/>
                                 </div>
                             </div>
 

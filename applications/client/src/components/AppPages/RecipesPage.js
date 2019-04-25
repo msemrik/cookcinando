@@ -20,6 +20,7 @@ class RecipesPage extends React.Component {
         this.editSection = this.editSection.bind(this);
         this.copySection = this.copySection.bind(this);
         this.removeSection = this.removeSection.bind(this);
+        this.addStep = this.addStep.bind(this);
            // this.savePlaylistsConfiguration = this.savePlaylistsConfiguration.bind(this);
     }
 
@@ -147,8 +148,8 @@ class RecipesPage extends React.Component {
             itemsToShow: this.state.selectedSection ? this.state.selectedSection.steps : undefined,
             // selectedConfiguredPlaylist: this.state.selectedConfiguredPlaylist,
             emptyMessage: "You do not have any step. Start by Clicking on Add Step. ",
-            itemActionOnClick: (section) => this.updateSelectedSection(section),
-            itemRightButtons: (item) => this.getSectionItemRightButtons(item)
+            // itemActionOnClick: (section) => this.updateSelectedSection(section),
+            // itemRightButtons: (item) => this.getSectionItemRightButtons(item)
             // itemRemoveAction: (recipe) => this.removeRecipe(recipe),
             // itemRenameAction: (recipe) => this.renameRecipe(recipe),
         }
@@ -162,8 +163,8 @@ class RecipesPage extends React.Component {
         //     dialogDropdownLabel: "Select section type",
         //     dialogDropdownOptions: sectionsType,
         //     dialogInputLabel: "Section Name",
-        //     action: this.addSection,
-        //     okButtonText: "Add Section"
+            action: this.addStep,
+            okButtonText: "Add Step"
         }
     }
 
@@ -354,6 +355,39 @@ class RecipesPage extends React.Component {
                     if (result.ok) {
                         this.getUserRecipes();
                         state.props.handleResponse({messageToShow: "Section Successfully copied =D"});
+                    } else {
+                        result.json().then(function (error) {
+                            state.props.handleResponse(error);
+                            state.props.hideLoadingModal();
+                        });
+                    }
+                }
+            )
+        }
+    }
+
+    addStep(action, importantNotes) {
+        if (!action) {
+            this.props.handleResponse(this.createError("Action is mandatory field"));
+        } else {
+            this.props.showLoadingModal();
+            fetch('/addstep', {
+                method: 'POST',
+                headers: {'Content-Type': "application/json"},
+                body: JSON.stringify({
+                    recipe: this.state.selectedRecipe,
+                    section: this.state.selectedSection,
+                    step: {
+                        action: action,
+                        importantNotes: importantNotes
+                    }
+                }),
+                redirect: 'manual'
+            }).then((result) => {
+                    var state = this;
+                    if (result.ok) {
+                        this.getUserRecipes();
+                        state.props.handleResponse({messageToShow: "Section Successfully added =D"});
                     } else {
                         result.json().then(function (error) {
                             state.props.handleResponse(error);

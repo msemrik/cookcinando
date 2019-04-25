@@ -196,6 +196,27 @@ module.exports = {
         });
     },
 
+    addStep: function (req, res) {
+        var section = req.body.section;
+        var recipe = req.body.recipe;
+        var step = req.body.step;
+
+        async.waterfall([
+
+            database.addStep("msemrik", recipe, section, step)
+        ], function (err) {
+            if (err) {
+                logger.error(generateErrorMessageToLog(err));
+                res.status(500);
+                res.json(generateErrorObjectToReturn(err.errorObject));
+                res.end();
+                return;
+            } else {
+                res.status(200);
+                res.end();
+            }
+        });
+    },
     // isLogged: function (req, res) {
     //     try {
     //         var loggedUser = sessionHandler.isLogged(req.sessionID)

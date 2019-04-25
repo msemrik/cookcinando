@@ -81,9 +81,14 @@ module.exports = {
         sectionNameDoNotExists: {errorCode: "600-06-01", errorMessage: "The selected section was not found on DB. "
             , errorToShow: "The selected recipe was not found on DB. "},
 
-        addingSectionDBError: {errorCode: "600-06-01", errorMessage: "The section could not be added dut to db error. "
+        addingSectionDBError: {errorCode: "600-06-01", errorMessage: "The section could not be added due to db error. "
             , errorToShow: "Error while adding section to recipe. "},
 
+        stepActionAlreadyExists: {errorCode: "600-06-01", errorMessage: "The selected action already exists. "
+            , errorToShow: "The selected action already exists. "},
+
+        addingStepDBError: {errorCode: "600-06-01", errorMessage: "The step could not be added due to db error. "
+            , errorToShow: "Error while adding step to section. "},
     },
 
 

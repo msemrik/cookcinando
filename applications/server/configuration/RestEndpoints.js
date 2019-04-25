@@ -57,6 +57,12 @@ function initRestEndPoints(app) {
                 restController.copySection(req, res);
             });
 
+    app.post('/addstep',
+            // validate({body: CreatePlaylistSchema}),
+            function (req, res) {
+                restController.addStep(req, res);
+            });
+
 
     //
     //

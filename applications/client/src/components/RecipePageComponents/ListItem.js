@@ -16,7 +16,7 @@ class ListItem extends React.Component {
 
                 <td className={this.props.isSelected ? "playlist-list-item-name-column selected" : "playlist-list-item-name-column"}>
                     <strong>
-                        {this.props.item.name}
+                        {this.props.item.name? this.props.item.name: this.props.item.action}
                     </strong>
                     <br/>
                     {/*Number of tracks: {this.props.playlist.tracks.total}*/}
