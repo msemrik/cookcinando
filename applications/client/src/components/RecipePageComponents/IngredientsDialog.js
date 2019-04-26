@@ -2,16 +2,17 @@ import './NewDialog.css';
 import stepType from "../../enum/StepType";
 import utensils from "../../enum/Utensils";
 import _ from "lodash";
+import IngredientLine from "./IngredientLine";
 
 var React = require('react');
 var ButtonToolbar = require('react-bootstrap').ButtonToolbar;
 var Table = require('react-bootstrap').Table;
 var ToggleButton = require('react-bootstrap').ToggleButton;
-
 var Button = require('react-bootstrap').Button;
 var Modal = require('react-bootstrap').Modal;
 // var DropdownButton = require('react-bootstrap').DropdownButton;
 // var Dropdown = require('react-bootstrap').Dropdown;
+var  FaPlus = require('react-icons/fa').FaPlus;
 
 class IngredientsDialog extends React.Component {
 
@@ -20,17 +21,15 @@ class IngredientsDialog extends React.Component {
 
         this.state = {
             lgShow: false,
-            action: this.props.actionInputInitValue,
-            stepTypeSelectedOption: this.props.stepTypeSelectedOptionInitValue,
-            importantNotes: this.props.importantNotesInputInitValue
+            ingredients: []
         };
 
-        this.handleSearchTextChange = this.handleSearchTextChange.bind(this);
+        this.addIngredient = this.addIngredient.bind(this);
         // this.handleClick = this.handleClick.bind(this);
     }
 
     componentWillMount() {
-        this.setState({utensils: this.props.utensils});
+        // this.setState({ingredients: this.props.ingredients});
     }
 
     componentWillReceiveProps(nextProps) {
@@ -42,9 +41,9 @@ class IngredientsDialog extends React.Component {
         this.props.action(this.props.item, this.state.name, this.state.dropdownSelectedOption);
     }
 
-    handleSearchTextChange(event) {
-        this.setState({searchText: event.target.value});
-    }
+    // handleSearchTextChange(event) {
+    //     this.setState({searchText: event.target.value});
+    // }
 
     // handleImportantNotesChange(event) {
     //     this.setState({searchText: event.target.action});
@@ -61,7 +60,7 @@ class IngredientsDialog extends React.Component {
                     stepTypeSelectedOption: this.props.stepTypeSelectedOptionInitValue,
                     importantNotes: this.props.importantNotesInputInitValue
                 })}>
-                    {"Utensils"}
+                    {"Ingredients"}
                 </Button>
 
                 <Modal
@@ -71,19 +70,25 @@ class IngredientsDialog extends React.Component {
                 >
 
                     <div className={"modal-div"}>
-                        <h3 className={"modal-div-title"}>{"Utensils"}</h3>
+                        <h3 className={"modal-div-title"}>
+                            {"Ingredients"}
+                        </h3>
+                        <Button variant="success" onClick={this.addIngredient}>
+                            <FaPlus />
+                        </Button>
                         <form className={"modal-div-form"}>
 
-                            <div className={"modal-div-form-item-group"}>
-                                <div className="input-group mb-3">
-                                    <div className="input-group-prepend">
-                                        <span className="input-group-text modal-div-form-item-group-input"
-                                              id="basic-addon1">{"Search"}</span>
-                                    </div>
-                                    <input type="text" className="form-control" aria-describedby="basic-addon1"
-                                           value={this.state.searchText} onChange={this.handleSearchTextChange}/>
-                                </div>
-                            </div>
+
+                            {/*<div className={"modal-div-form-item-group"}>*/}
+                                {/*<div className="input-group mb-3">*/}
+                                    {/*<div className="input-group-prepend">*/}
+                                        {/*<span className="input-group-text modal-div-form-item-group-input"*/}
+                                              {/*id="basic-addon1">{"Search"}</span>*/}
+                                    {/*</div>*/}
+                                    {/*<input type="text" className="form-control" aria-describedby="basic-addon1"*/}
+                                           {/*value={this.state.searchText} onChange={this.handleSearchTextChange}/>*/}
+                                {/*</div>*/}
+                            {/*</div>*/}
 
                             <Table >
                                 {/*<thead>*/}
@@ -95,16 +100,10 @@ class IngredientsDialog extends React.Component {
                                 {/*</thead>*/}
                                 <tbody>
 
-                                {this.state.utensils ?
-                                    _.chunk(this.state.utensils.filter(utensil =>
-                                    (this.state.searchText && this.state.searchText !== '')? utensil.textToShow.toLowerCase().includes(this.state.searchText.toLowerCase()): true), 3).map(
-                                    utensils =>
-                                        <tr>
-                                            { utensils.map(utensil =>
-                                            <td>
-                                                <Button variant={utensil.selected? "success": "light"} onClick={() => this.changeSelectedStatus(utensil)}>{utensil.textToShow}</Button>
-                                            </td>)}
-                                        </tr>
+                                {this.state.ingredients ?
+                                    this.state.ingredients.map(
+                                    ingredient =>
+                                                <IngredientLine ingredient2={ingredient} />
                                 )
                                 : undefined}
 
@@ -149,7 +148,13 @@ class IngredientsDialog extends React.Component {
 
     }
 
+    addIngredient(){
+        var ingredients = this.state.ingredients;
+        ingredients.push({});
+        this.setState({ingredients: ingredients});
 
+        // this.state.push()
+    }
     updateStepTypeSelectedOption(option) {
         this.setState({stepTypeSelectedOption: option});
     }

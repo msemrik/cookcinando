@@ -420,7 +420,7 @@ module.exports =
                                 var step = _.find(section.steps, {name: newStep.name});
                                 if(!step){
                                     RecipesModel.updateOne(
-                                        {"_id": loggedUser/*, "recipes.name": recipeToUpdate.name, "recipes.sections.name": sectionToUpdate.name*/},
+                                        {"_id": loggedUser},
                                         {"$push": {"recipes.$[i].sections.$[j].steps": newStep}}, {arrayFilters: [{"i.name": recipeToUpdate.name}, {"j.name": sectionToUpdate.name}]},
                                         function (err, raw) {
                                             if (err) callback(createErrorObject(loggerMessages.addingStepDBError, err));
