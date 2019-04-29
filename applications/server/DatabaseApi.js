@@ -26,9 +26,9 @@ let recipesSchema = new Schema({
                     name: String
                 }],
                 ingredients: [{
-                    name: String,
-                    quantity: Number,
-                    units: String,
+                    ingredientName: String,
+                    amount: Number,
+                    measurementUnits: String,
                     whereToBuy: String
                 }]
             }]

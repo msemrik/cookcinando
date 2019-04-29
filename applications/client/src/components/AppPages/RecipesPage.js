@@ -149,10 +149,68 @@ class RecipesPage extends React.Component {
             // selectedConfiguredPlaylist: this.state.selectedConfiguredPlaylist,
             emptyMessage: "You do not have any step. Start by Clicking on Add Step. ",
             // itemActionOnClick: (section) => this.updateSelectedSection(section),
-            // itemRightButtons: (item) => this.getSectionItemRightButtons(item)
+            itemRightButtons: (item) => this.getStepItemRightButtons(item)
             // itemRemoveAction: (recipe) => this.removeRecipe(recipe),
             // itemRenameAction: (recipe) => this.renameRecipe(recipe),
         }
+    }
+
+    getStepItemRightButtons(item) {
+        return (
+            <div>
+                <NewDialog {...this.getRemoveStepDialog(item)} />
+                <StepDialog {...this.getEditStepDialog(item)} />
+            </div>
+        );
+    }
+
+    getEditStepDialog(item) {
+        return {
+            buttonText: "Edit Step",
+            //     dialogTitle: "Create Section",
+            //     dialogButton: <StepDialog {...this.getCopySectionDialog()} />,
+            //     dialogDropdownLabel: "Select section type",
+            //     dialogDropdownOptions: sectionsType,
+            //     dialogInputLabel: "Section Name",
+            action: this.editStep,
+            okButtonText: "Add Step"
+        }
+    }
+    editStep(){
+
+    }
+
+    getRemoveStepDialog(item) {
+        return {
+            item: item,
+            buttonText: "Remove Step",
+            dialogTitle: "Are you sure you want to remove " + item.name + " ?",
+            // dialogInputLabel: "Recipe Name",
+            action: this.removeStep,
+            okButtonText: "Remove step"
+        }
+    }
+
+    removeStep(item, name) {
+        this.props.showLoadingModal();
+        fetch('/removestep', {
+            method: 'POST',
+            headers: {'Content-Type': "application/json"},
+            body: JSON.stringify({step: item, section: this.state.selectedSection, recipe: this.state.selectedRecipe}),
+            redirect: 'manual'
+        }).then((result) => {
+                var state = this;
+                if (result.ok) {
+                    this.getUserRecipes();
+                    state.props.handleResponse({messageToShow: "Recipe Successfully removed"});
+                } else {
+                    result.json().then(function (error) {
+                        state.props.handleResponse(error);
+                        state.props.hideLoadingModal();
+                    });
+                }
+            }
+        )
     }
 
     getAddStepDialog() {
@@ -366,10 +424,11 @@ class RecipesPage extends React.Component {
         }
     }
 
-    addStep(action, importantNotes) {
+    addStep(closeMethod, action, ingredients) {
         if (!action) {
             this.props.handleResponse(this.createError("Action is mandatory field"));
         } else {
+            closeMethod();
             this.props.showLoadingModal();
             fetch('/addstep', {
                 method: 'POST',
@@ -379,7 +438,7 @@ class RecipesPage extends React.Component {
                     section: this.state.selectedSection,
                     step: {
                         action: action,
-                        importantNotes: importantNotes
+                        ingredients: ingredients
                     }
                 }),
                 redirect: 'manual'

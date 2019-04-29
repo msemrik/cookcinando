@@ -1,6 +1,6 @@
 import './NewDialog.css';
 import stepType from "../../enum/StepType";
-import utensils from "../../enum/Utensils";
+import measurementUnits from "../../enum/MeasurementUnits";
 import _ from "lodash";
 import IngredientLine from "./IngredientLine";
 
@@ -13,6 +13,7 @@ var Modal = require('react-bootstrap').Modal;
 // var DropdownButton = require('react-bootstrap').DropdownButton;
 // var Dropdown = require('react-bootstrap').Dropdown;
 var  FaPlus = require('react-icons/fa').FaPlus;
+var  FaMinus = require('react-icons/fa').FaMinusCircle;
 
 class IngredientsDialog extends React.Component {
 
@@ -21,11 +22,14 @@ class IngredientsDialog extends React.Component {
 
         this.state = {
             lgShow: false,
-            ingredients: []
+            ingredients: this.props.ingredients
         };
 
         this.addIngredient = this.addIngredient.bind(this);
-        // this.handleClick = this.handleClick.bind(this);
+        this.handleRemoveIngredient = this.handleRemoveIngredient.bind(this);
+        this.handleIngredientUpdate = this.handleIngredientUpdate.bind(this);
+        this.handleSave = this.handleSave.bind(this);
+        this.handleClose = this.handleClose.bind(this);
     }
 
     componentWillMount() {
@@ -36,10 +40,10 @@ class IngredientsDialog extends React.Component {
         this.setState({utensils: nextProps.utensils});
     }
 
-    handleClick() {
-        this.lgClose();
-        this.props.action(this.props.item, this.state.name, this.state.dropdownSelectedOption);
-    }
+    // handleClick() {
+        // this.lgClose();
+        // this.props.action(this.props.item, this.state.name, this.state.dropdownSelectedOption);
+    // }
 
     // handleSearchTextChange(event) {
     //     this.setState({searchText: event.target.value});
@@ -49,9 +53,21 @@ class IngredientsDialog extends React.Component {
     //     this.setState({searchText: event.target.action});
     // }
 
+    handleClose(){
+        // this.props.checkIngredientsAreComplete();
+        this.lgClose();
+    }
+
+    handleSave(){
+        this.props.updateIngredients(this.state.ingredients);
+        this.lgClose();
+    }
+
     lgClose = () => this.setState({lgShow: false});
 
+
     render() {
+        var index = 0;
         return (
             <ButtonToolbar>
                 <Button className={"playlist-list-button-div-button"} onClick={() => this.setState({
@@ -99,12 +115,12 @@ class IngredientsDialog extends React.Component {
                                 {/*</tr>*/}
                                 {/*</thead>*/}
                                 <tbody>
-
                                 {this.state.ingredients ?
+
                                     this.state.ingredients.map(
-                                    ingredient =>
-                                                <IngredientLine ingredient2={ingredient} />
-                                )
+                                        (ingredient,i) =>
+                                    <IngredientLine {...this.getIngredientProps(i, ingredient)} />
+                                    )
                                 : undefined}
 
                                 {/*<tr>*/}
@@ -128,11 +144,11 @@ class IngredientsDialog extends React.Component {
                             </Table>
 
                             <div className={"modal-div-form-item-group button-item-group"}>
-                                <Button className={"playlist-add-playlist-cancel-button"} onClick={this.lgClose}>
-                                    {this.props.closeButtonText ? this.props.okButtonText : "Close"}
+                                <Button className={"playlist-add-playlist-cancel-button"} onClick={this.handleClose}>
+                                    {"Close"}
                                 </Button>
-                                <Button className={"playlist-add-playlist-create-button"} onClick={this.handleClick}>
-                                    {this.props.okButtonText}
+                                <Button className={"playlist-add-playlist-create-button"} onClick={this.handleSave}>
+                                    {this.props.okButtonText? this.props.okButtonText : "Save" }
                                 </Button>
                             </div>
                         </form>
@@ -141,6 +157,29 @@ class IngredientsDialog extends React.Component {
             </ButtonToolbar>
         );
     }
+
+    getIngredientProps(indexOfIngredient, ingredient){
+        return {
+            index: indexOfIngredient,
+            ingredient:ingredient,
+            handleIngredientUpdate: this.handleIngredientUpdate,
+            removeIngredient: this.handleRemoveIngredient
+        }
+    }
+
+    handleIngredientUpdate(ingredient){
+        var ingredients = this.state.ingredients;
+        ingredients[ingredient.index] = ingredient;
+        this.setState({ingredients: ingredients});
+    }
+
+    handleRemoveIngredient(index){
+        var ingredients = this.state.ingredients;
+        delete ingredients[index];
+        this.setState({ingredients: ingredients});
+
+    }
+
     changeSelectedStatus(utensil){
         console.log(utensil);
         utensil.selected = !utensil.selected;
@@ -150,10 +189,8 @@ class IngredientsDialog extends React.Component {
 
     addIngredient(){
         var ingredients = this.state.ingredients;
-        ingredients.push({});
+        ingredients.push({ingredientName: '', measurementUnits: undefined, amount: 0});
         this.setState({ingredients: ingredients});
-
-        // this.state.push()
     }
     updateStepTypeSelectedOption(option) {
         this.setState({stepTypeSelectedOption: option});
